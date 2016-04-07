@@ -1,0 +1,233 @@
+var NUM_FISH = 80;
+var NUM_PSEUDOFISH = 2;
+var FISH_MAX_V = 0.5;
+var FISH_MIN_V = 0.05;
+var FISH_BIT_MAX_R = 8;
+var FISH_BIT_MIN_R = 3;
+var FRAME_TIME = 1/60;
+var CANVAS_WIDTH  = 800;
+var CANVAS_HEIGHT = 800;
+var AVOID_THRESHOLD = 50;
+var FOLLOW_THRESHOLD = 150;
+var ADJUST_SCALE = 0.01;
+var MS_BETWEEN_ADD_FISH = 100;
+var MS_BETWEEN_ADD_PSEUDOFISH = 10000;
+var MS_BETWEEN_CYCLE_PSEUDOFISH = 10000;
+var fishes = [];
+var pseudofishes = [];
+
+function mod( l, r ){
+  return ((l%r)+r)%r;
+}
+
+function dist( x1, y1, x2, y2 ){
+  return Math.min(
+    Math.sqrt( Math.pow( x2-x1, 2 ) + Math.pow( y2-y1, 2 ) ),
+    Math.sqrt( Math.pow( Math.abs(x2-x1) - CANVAS_WIDTH, 2 ) + Math.pow( y2-y1, 2 ) ),
+    Math.sqrt( Math.pow( x2-x1, 2 ) + Math.pow( Math.abs(y2-y1) - CANVAS_HEIGHT, 2 ) ),
+    Math.sqrt( Math.pow( Math.abs(x2-x1) - CANVAS_WIDTH, 2 ) + Math.pow( Math.abs(y2-y1) - CANVAS_HEIGHT, 2 ) )
+  );
+}
+
+function angleDelta( a1, a2 ){
+  var angle = Math.min(
+      a2 - a1,
+    ( a2 - 2 * Math.PI ) - a1,
+      a2 - ( a1 - 2 * Math.PI )
+  );
+  while( angle < -Math.PI ){
+    angle += 2 * Math.PI;
+  }
+  while( angle > Math.PI ){
+    angle -= 2 * Math.PI;
+  }
+  return angle;
+}
+
+function FishBit( fish ){
+  this.x = fish.x;
+  this.y = fish.y;
+  this.r = FISH_BIT_MIN_R + ( Math.random() * ( FISH_BIT_MAX_R - FISH_BIT_MIN_R ) );
+  this.t = ( Math.random() * 1 ) + 0.5;
+}
+
+function Fish( x, y, v, a ){
+  this.x = x;
+  this.y = y;
+  this.v = v;
+  this.a = a;
+  this.aDelta = 0;
+  this.bits = [];
+  this.lastAs = [ this.a ];
+  for( var i = 1; i < 1 + ( Math.random() * 5 ); i ++ ){
+    this.bits.push( new FishBit( this ) );
+  }
+  this.updatePosition();
+}
+
+Fish.prototype = {
+  respond : function( fish ){
+    var distance = dist( this.x, this.y, fish.x, fish.y );
+    if( distance < AVOID_THRESHOLD ){
+      this.avoid( fish, distance );
+    }
+    if( distance < FOLLOW_THRESHOLD ){
+      this.follow( fish, distance );
+    }
+  },
+  follow : function( fish, distance ){
+    var scale    = ADJUST_SCALE * ( Math.max( 0, FOLLOW_THRESHOLD - distance ) / FOLLOW_THRESHOLD ); 
+    if( scale > 0 ){
+      var targetA = fish.a;
+      this.aDelta += angleDelta( this.a, targetA ) * scale;
+      this.v = ( this.v * ( 1-scale ) ) + ( fish.v * scale );
+    }
+  },
+  avoid : function( fish, distance ){
+    var scale    = ADJUST_SCALE * ( Math.max( 0, AVOID_THRESHOLD - distance ) / AVOID_THRESHOLD );
+    if( scale > 0 ){
+      var targetA = Math.atan2(this.y - fish.y, this.x - fish.x)
+      this.aDelta += angleDelta( this.a, targetA ) * scale;
+    }
+  },
+  updatePosition : function(){
+    this.aDelta *= 0.2;
+    this.a = mod( this.a + this.aDelta, 2 * Math.PI );
+    this.lastAs = [ this.a ].concat( this.lastAs );
+    while( this.lastAs.length > this.bits.length ){
+      this.lastAs = this.lastAs.slice( 0, -1 );
+    }
+    this.x = mod( this.x + ( this.v * Math.cos( this.a ) ), CANVAS_WIDTH );
+    this.y = mod( this.y + ( this.v * Math.sin( this.a ) ), CANVAS_HEIGHT );
+    var bitDist = 0;
+    this.bits.forEach( function( bit, index ){
+      var delta = angleDelta( this.a, this.lastAs[ index ] );
+      var angle = mod( this.a + ( delta ) * 10, 2 * Math.PI );
+      bitDist += bit.r * 2;
+      bit.x = mod( this.x + ( -1 * bitDist * Math.cos( angle ) ), CANVAS_WIDTH );
+      bit.y = mod( this.y + ( -1 * bitDist * Math.sin( angle ) ), CANVAS_HEIGHT );
+    }.bind(this));
+  }
+};
+
+function circle( ctx, x, y, r ){
+  ctx.arc( x, y, r, 0, 2*Math.PI );
+}
+
+function drawBit( ctx, bit, cyclePosition ){
+  ctx.lineWidth = bit.t*(Math.sin( 1 - cyclePosition * 2 * Math.PI ) + 1) + 0.5;
+  ctx.beginPath();
+  circle( ctx, bit.x, bit.y, bit.r );
+  ctx.stroke();
+}
+
+function drawFish( ctx, fish, drawCount ){
+  var previousBit
+  fish.bits.forEach( function( bit, index ){
+    drawBit( ctx, bit, ( ( (drawCount * 0.5*FRAME_TIME) + index / fish.bits.length ) % 3 ) / 3 );
+  })
+  ctx.lineWidth = 1;
+  fish.bits.forEach( function( bit ){
+    if( previousBit != null ){
+      var distance = dist( previousBit.x, previousBit.y, bit.x, bit.y );
+      if( 
+        Math.abs( previousBit.x - bit.x ) < 2 * distance &&
+        Math.abs( previousBit.y - bit.y ) < 2 * distance 
+      ){
+        ctx.beginPath();
+        ctx.moveTo( bit.x, bit.y );
+        ctx.lineTo( previousBit.x, previousBit.y );
+        ctx.stroke();
+      }
+    }
+    previousBit = bit;
+  });
+}
+
+function draw( ctx, drawCount ){
+  ctx.fillStyle = "#000";
+  ctx.fillRect( 0, 0, ctx.canvas.width, ctx.canvas.height );
+  /*ctx.strokeStyle = "rgb("
+    +(Math.round(Math.max(0,Math.sin((drawCount%1000/1000)*Math.PI*2)*155))+105)
+    +","
+    +(Math.round(Math.max(0,Math.sin((drawCount%780/780)*Math.PI*2)*155))+105)
+    +","
+    +(Math.round(Math.max(0,Math.sin((drawCount%1210/1210)*Math.PI*2)*155))+105)
+  +")";*/
+  ctx.strokeStyle = "#fff";
+  fishes.forEach( function( fish ){
+    fishes.forEach( function( otherFish ){
+      if( fish !== otherFish ){
+        fish.respond( otherFish );
+      }
+    });
+    pseudofishes.forEach( function( pseudofish ){
+      fish.respond( pseudofish );
+    });
+  });
+  fishes.forEach( function( fish ){
+    fish.updatePosition();
+    drawFish( ctx, fish, drawCount );
+  });
+  ctx.strokeStyle = "#f0f";
+  pseudofishes.forEach( function( pseudofish ){
+    pseudofish.updatePosition();
+    //drawFish( ctx, pseudofish );
+  });
+}
+
+function makeFish(){
+  return new Fish( 
+    Math.random() * CANVAS_WIDTH, 
+    Math.random() * CANVAS_HEIGHT, 
+    FISH_MIN_V + ( Math.random() * ( FISH_MAX_V - FISH_MIN_V )),
+    Math.random() * 2 * Math.PI
+  );
+}
+
+function makeFishes( numFish ){
+  var fishes = [];
+  for( var i = 0; i < numFish; i ++ ){
+    fishes.push( makeFish() );
+  }
+  return fishes;
+}
+
+function cyclePseudofish(){
+  console.log("cycling");
+  pseudofishes.push( makeFish() );
+  pseudofishes.splice( 0, 1 );
+}
+
+$(function(){
+
+  $(document).keydown(function( event ){
+    cyclePseudofish();
+  });
+
+  var cnv = $("#canvas")[0];
+  cnv.width = CANVAS_WIDTH;
+  cnv.height= CANVAS_HEIGHT;
+  var ctx = cnv.getContext("2d");
+  ctx.translate( CANVAS_WIDTH/2, CANVAS_HEIGHT/2 );
+  ctx.scale(1.1, 1.1);
+  ctx.translate( -CANVAS_WIDTH/2, -CANVAS_HEIGHT/2 );
+  var startTime = new Date().getTime();
+  var cyclePseudofishCount = 0;
+  var drawCount = 0;
+  setInterval(function(){
+    var deltaTime = new Date().getTime() - startTime;
+    if( fishes.length < NUM_FISH && deltaTime > fishes.length * MS_BETWEEN_ADD_FISH ){
+      fishes.push( makeFish() );
+    }
+    if( pseudofishes.length < NUM_PSEUDOFISH && deltaTime > pseudofishes.length * MS_BETWEEN_ADD_PSEUDOFISH ){
+      pseudofishes.push( makeFish() );
+    }
+    if( deltaTime > cyclePseudofishCount * MS_BETWEEN_CYCLE_PSEUDOFISH ){
+      cyclePseudofish();
+      cyclePseudofishCount ++;
+    }
+    drawCount ++;
+    draw( ctx, drawCount );
+  }, FRAME_TIME);
+});
