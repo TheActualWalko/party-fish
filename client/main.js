@@ -1,12 +1,20 @@
 /* global socket */
 
 socket.on("addFish", function( userID ){
-  fishes.push( makeFish() );
+  console.log("Adding a fish");
+  fishMap[ userID ] = makeFish();
+});
+
+socket.on("removeFish", function( userID ){
+  console.log("Removing a fish");
+  delete fishMap[ userID ];
 });
 
 socket.on("setFishes", function( userIDs ){
-  console.log("ay!");
-  fishes = userIDs.map( makeFish );
+  console.log("Setting fishes");
+  userIDs.forEach(function( userID ){
+    fishMap[ userID ] = makeFish();
+  });
 });
 
 socket.emit("host");
@@ -27,7 +35,7 @@ var ADJUST_SCALE = 0.01;
 var MS_BETWEEN_ADD_FISH = 100;
 var MS_BETWEEN_ADD_PSEUDOFISH = 10000;
 var MS_BETWEEN_CYCLE_PSEUDOFISH = 10000;
-var fishes = [];
+var fishMap = {};
 var pseudofishes = [];
 
 function mod( l, r ){
@@ -158,6 +166,12 @@ function drawFish( ctx, fish, drawCount ){
   });
 }
 
+function forEachFish(callback){
+  Object.keys( fishMap ).forEach(function( userID ){
+    callback( fishMap[ userID ] );
+  });
+}
+
 function draw( ctx, drawCount ){
   ctx.fillStyle = "#000";
   ctx.fillRect( 0, 0, ctx.canvas.width, ctx.canvas.height );
@@ -169,8 +183,8 @@ function draw( ctx, drawCount ){
     +(Math.round(Math.max(0,Math.sin((drawCount%1210/1210)*Math.PI*2)*155))+105)
   +")";*/
   ctx.strokeStyle = "#fff";
-  fishes.forEach( function( fish ){
-    fishes.forEach( function( otherFish ){
+  forEachFish( function( fish ){
+    forEachFish( function( otherFish ){
       if( fish !== otherFish ){
         fish.respond( otherFish );
       }
@@ -179,7 +193,7 @@ function draw( ctx, drawCount ){
       fish.respond( pseudofish );
     });
   });
-  fishes.forEach( function( fish ){
+  forEachFish( function( fish ){
     fish.updatePosition();
     drawFish( ctx, fish, drawCount );
   });
@@ -197,14 +211,6 @@ function makeFish(){
     FISH_MIN_V + ( Math.random() * ( FISH_MAX_V - FISH_MIN_V )),
     Math.random() * 2 * Math.PI
   );
-}
-
-function makeFishes( numFish ){
-  var fishes = [];
-  for( var i = 0; i < numFish; i ++ ){
-    fishes.push( makeFish() );
-  }
-  return fishes;
 }
 
 function cyclePseudofish( fish ){

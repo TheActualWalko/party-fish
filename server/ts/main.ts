@@ -17,6 +17,11 @@ io.on('connection', function(socket){
       console.log("A user checked in!");
       activeFish.push( userID );
       hostSocket.emit( "addFish", userID );
+      socket.on("disconnect", ()=>{
+        console.log("A user disconnected!");
+        hostSocket.emit( "removeFish", userID );
+        activeFish.splice( activeFish.indexOf( userID ), 1 );
+      });
     }
   });
   socket.on("host", ()=>{
