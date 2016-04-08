@@ -1,12 +1,26 @@
+/* global socket */
+
+socket.on("addFish", function( userID ){
+  fishes.push( makeFish() );
+});
+
+socket.on("setFishes", function( userIDs ){
+  console.log("ay!");
+  fishes = userIDs.map( makeFish );
+});
+
+socket.emit("host");
+
 var NUM_FISH = 80;
 var NUM_PSEUDOFISH = 2;
 var FISH_MAX_V = 0.5;
 var FISH_MIN_V = 0.05;
 var FISH_BIT_MAX_R = 8;
 var FISH_BIT_MIN_R = 3;
-var FRAME_TIME = 1/60;
-var CANVAS_WIDTH  = 800;
-var CANVAS_HEIGHT = 800;
+var PULSE_SECONDS = 5;
+var FRAME_MS = 1/60;
+var CANVAS_WIDTH  = 800;//$(window).width();
+var CANVAS_HEIGHT = 800;//$(window).height();
 var AVOID_THRESHOLD = 50;
 var FOLLOW_THRESHOLD = 150;
 var ADJUST_SCALE = 0.01;
@@ -124,7 +138,7 @@ function drawBit( ctx, bit, cyclePosition ){
 function drawFish( ctx, fish, drawCount ){
   var previousBit
   fish.bits.forEach( function( bit, index ){
-    drawBit( ctx, bit, ( ( (drawCount * 0.5*FRAME_TIME) + index / fish.bits.length ) % 3 ) / 3 );
+    drawBit( ctx, bit, ( ( ( drawCount * ( 1 / PULSE_SECONDS ) * FRAME_MS ) + index / fish.bits.length ) % 3 ) / 3 );
   })
   ctx.lineWidth = 1;
   fish.bits.forEach( function( bit ){
@@ -193,16 +207,58 @@ function makeFishes( numFish ){
   return fishes;
 }
 
-function cyclePseudofish(){
+function cyclePseudofish( fish ){
   console.log("cycling");
-  pseudofishes.push( makeFish() );
+  if( fish == null ){
+    fish = makeFish();
+  }
+  pseudofishes.push( fish );
   pseudofishes.splice( 0, 1 );
 }
 
 $(function(){
 
+
+  CANVAS_WIDTH  = $(window).width();
+  CANVAS_HEIGHT = $(window).height();
+
   $(document).keydown(function( event ){
-    cyclePseudofish();
+    console.log( event.which );
+    if( event.which === 90 ){
+      // z (up/down)
+      pseudofishes = [];
+      var num = 20
+      for( var i = 0; i < num; i ++ ){
+        pseudofishes.push( new Fish( CANVAS_WIDTH * 0.33, CANVAS_HEIGHT * ( i/num-1 ), FISH_MAX_V, -0.5 * Math.PI ) );
+        pseudofishes.push( new Fish( CANVAS_WIDTH * 0.67, CANVAS_HEIGHT * ( i/num-1 ), FISH_MAX_V,  0.5 * Math.PI ) );
+      }
+    }else if( event.which === 38 ){
+      // up
+      pseudofishes = [];
+      for( var i = 0; i < NUM_PSEUDOFISH; i ++ ){
+        pseudofishes.push( new Fish( CANVAS_WIDTH * ( ( i+1 ) / ( NUM_PSEUDOFISH + 1 ) ) , CANVAS_HEIGHT, FISH_MAX_V, -0.5 * Math.PI ) );        
+      }
+    }else if( event.which === 40 ){
+      // down
+      pseudofishes = [];
+      for( var i = 0; i < NUM_PSEUDOFISH; i ++ ){
+        pseudofishes.push( new Fish( CANVAS_WIDTH * ( ( i+1 ) / ( NUM_PSEUDOFISH + 1 ) ) , CANVAS_HEIGHT, FISH_MAX_V, 0.5 * Math.PI ) );        
+      }
+    }else if( event.which === 37 ){
+      // left
+      pseudofishes = [];
+      for( var i = 0; i < NUM_PSEUDOFISH; i ++ ){
+        pseudofishes.push( new Fish( CANVAS_WIDTH, CANVAS_HEIGHT * ( ( i+1 ) / ( NUM_PSEUDOFISH + 1 ) ), FISH_MAX_V, Math.PI ) );        
+      }
+    }else if( event.which === 39 ){
+      // right
+      pseudofishes = [];
+      for( var i = 0; i < NUM_PSEUDOFISH; i ++ ){
+        pseudofishes.push( new Fish( 0, CANVAS_HEIGHT * ( ( i+1 ) / ( NUM_PSEUDOFISH + 1 ) ), FISH_MAX_V, 0 ) );        
+      }
+    }else{
+      cyclePseudofish();
+    }
   });
 
   var cnv = $("#canvas")[0];
@@ -217,9 +273,6 @@ $(function(){
   var drawCount = 0;
   setInterval(function(){
     var deltaTime = new Date().getTime() - startTime;
-    if( fishes.length < NUM_FISH && deltaTime > fishes.length * MS_BETWEEN_ADD_FISH ){
-      fishes.push( makeFish() );
-    }
     if( pseudofishes.length < NUM_PSEUDOFISH && deltaTime > pseudofishes.length * MS_BETWEEN_ADD_PSEUDOFISH ){
       pseudofishes.push( makeFish() );
     }
@@ -229,5 +282,5 @@ $(function(){
     }
     drawCount ++;
     draw( ctx, drawCount );
-  }, FRAME_TIME);
+  }, FRAME_MS);
 });
