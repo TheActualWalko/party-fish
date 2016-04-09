@@ -17,14 +17,14 @@ class Fish{
   static FOLLOW_THRESHOLD  = 150;
   static AVOID_SCALE  = 0.01;
   static FOLLOW_SCALE = 0.01;
-  static ANGLE_FRICTION_PER_TICK = 0.8;
-  static SPEED_FRICTION_PER_TICK = 0;
+  static ANGLE_FRICTION = 0.8;
+  static SPEED_FRICTION = 0.1;
   
   bits       : FishBit[];
   coords     : Coords;
   velocity   : Velocity;
-  angleDeltaPerTick : number = 0;
-  speedDeltaPerTick : number = 0;
+  angleDelta : number = 0;
+  speedDelta : number = 0;
 
   constructor( props : FishProps ){
     this.bits     = props.bits;
@@ -46,15 +46,15 @@ class Fish{
     let scale = this.getAvoidScale( fish );
     if( scale > 0 ){
       let targetAngle = Angles.betweenPoints( fish.coords, this.coords );
-      this.angleDeltaPerTick += scale * Angles.delta( this.velocity.angleRadians, targetAngle );
+      this.angleDelta += scale * Angles.delta( this.velocity.angleRadians, targetAngle );
     }
   }
   
   follow( fish : Fish ){
     let scale = this.getFollowScale( fish );
     if( scale > 0 ){
-      this.angleDeltaPerTick += scale * Angles.delta( this.velocity.angleRadians, fish.velocity.angleRadians );
-      this.speedDeltaPerTick += scale * ( fish.velocity.unitsPerTick - this.velocity.unitsPerTick );
+      this.angleDelta += scale * Angles.delta( this.velocity.angleRadians, fish.velocity.angleRadians );
+      this.speedDelta += scale * ( fish.velocity.unitsPerTick - this.velocity.unitsPerTick );
     }
   }
 
@@ -69,20 +69,20 @@ class Fish{
   }
 
   updatePosition( ticks ){
-    this.applyFriction( ticks );
-    this.updateVelocity( ticks );
+    this.applyFriction();
+    this.updateVelocity();
     this.move( ticks );
   }
 
-  private applyFriction( ticks ){
-    this.angleDeltaPerTick *= ( 1 - Fish.ANGLE_FRICTION_PER_TICK ) * ticks;
-    this.speedDeltaPerTick *= ( 1 - Fish.SPEED_FRICTION_PER_TICK ) * ticks;
+  private applyFriction(){
+    this.angleDelta *= ( 1 - Fish.ANGLE_FRICTION );
+    this.speedDelta *= ( 1 - Fish.SPEED_FRICTION );
   }
   
-  private updateVelocity( ticks ){
+  private updateVelocity(){
     this.velocity = new Velocity( 
-      this.velocity.unitsPerTick + ( this.speedDeltaPerTick * ticks ),
-      this.velocity.angleRadians + ( this.angleDeltaPerTick * ticks )
+      this.velocity.unitsPerTick + ( this.speedDelta ),
+      this.velocity.angleRadians + ( this.angleDelta )
     );
   }
   
