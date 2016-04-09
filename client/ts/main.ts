@@ -48,7 +48,7 @@ import FishRenderer = require("./fish-renderer");
     ctx.fillStyle = "#000";
     ctx.fillRect( 0, 0, ctx.canvas.width, ctx.canvas.height );
     ctx.strokeStyle = "#fff";
-    let numTicks = frameTime / TICK_MS;
+    let numTicks = 2;//frameTime / TICK_MS;
     pond.updateAllFish( numTicks );
     pond.fishes.forEach((fish)=>{
       fishRenderer.render( fish, ctx )
