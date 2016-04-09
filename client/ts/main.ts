@@ -37,6 +37,7 @@ import FishRenderer = require("./fish-renderer");
   const FISH_BIT_MIN_R = 3;
   const PULSE_SECONDS = 5;
   const FRAME_MS = 1000/60;
+  const TICK_MS = FRAME_MS;
   let CANVAS_WIDTH  = 800;
   let CANVAS_HEIGHT = 800;
 
@@ -47,7 +48,7 @@ import FishRenderer = require("./fish-renderer");
     ctx.fillStyle = "#000";
     ctx.fillRect( 0, 0, ctx.canvas.width, ctx.canvas.height );
     ctx.strokeStyle = "#fff";
-    let numTicks = frameTime / FRAME_MS;
+    let numTicks = frameTime / TICK_MS;
     pond.updateAllFish( numTicks );
     pond.fishes.forEach((fish)=>{
       fishRenderer.render( fish, ctx )
@@ -67,7 +68,9 @@ import FishRenderer = require("./fish-renderer");
       bits : [ 
         { radius : 4, lineWidth : 1 },
         { radius : 1, lineWidth : 1 },
-        { radius : 4, lineWidth : 1 },
+        { radius : 3, lineWidth : 1 },
+        { radius : 2, lineWidth : 1 },
+        { radius : 1, lineWidth : 1 },
       ]
     });
   }
