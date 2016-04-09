@@ -28,10 +28,10 @@ import FishRenderer = require("./fish-renderer");
 
   socket.emit("host");
   */
-  const NUM_FISH = 80;
+  const NUM_FISH = 160;
   const NUM_PSEUDOFISH = 2;
-  const FISH_MAX_V = 0.5;
-  const FISH_MIN_V = 0.05;
+  const FISH_MAX_V = 0.25;
+  const FISH_MIN_V = 0.025;
   const FISH_BIT_MAX_R = 8;
   const FISH_BIT_MIN_R = 3;
   const PULSE_SECONDS = 5;
@@ -64,9 +64,9 @@ import FishRenderer = require("./fish-renderer");
         Math.random() * 2 * Math.PI 
       ),
       bits : [ 
-        { radius : 8, lineWidth : 2 },
-        { radius : 4, lineWidth : 2 },
-        { radius : 6, lineWidth : 2 },
+        { radius : 4, lineWidth : 1 },
+        { radius : 1, lineWidth : 1 },
+        { radius : 4, lineWidth : 1 },
       ]
     });
   }
@@ -81,7 +81,7 @@ import FishRenderer = require("./fish-renderer");
       fishes.push( makeFish() );
     }
 
-    pond = new Pond( fishes );
+    pond = new Pond( fishes, CANVAS_WIDTH, CANVAS_HEIGHT );
 
     let cnv : any = jQuery("#canvas")[0];
     cnv.width = CANVAS_WIDTH;

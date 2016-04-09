@@ -68,10 +68,10 @@ class Fish{
     return Fish.FOLLOW_SCALE * ( Math.max( 0, Fish.FOLLOW_THRESHOLD - distance ) / Fish.FOLLOW_THRESHOLD ); 
   }
 
-  updatePosition( ticks ){
+  updatePosition( ticks : number, maxX : number, maxY : number ){
     this.applyFriction();
     this.updateVelocity();
-    this.move( ticks );
+    this.move( ticks, maxX, maxY );
   }
 
   private applyFriction(){
@@ -86,8 +86,12 @@ class Fish{
     );
   }
   
-  private move( ticks ){
-    this.coords = this.coords.move( this.velocity, ticks );
+  private move( ticks, maxX, maxY ){
+    var moved = this.coords.move( this.velocity, ticks );
+    this.coords = new Coords(
+      mod( moved.x, maxX ),
+      mod( moved.y, maxY )
+    );
   }
 
 }
