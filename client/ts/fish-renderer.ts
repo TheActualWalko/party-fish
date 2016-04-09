@@ -16,16 +16,21 @@ class FishRenderer{
     this.context.stroke();
   }
   render( fish : Fish ){
+    let totalDist = 0;
     fish.bits.forEach(( bit, index )=>{
+      if( index > 0 ){
+        totalDist += bit.radius;
+      }
       this.renderBit( 
         bit, 
         fish.coords.move( 
           new Velocity( 
-            bit.radius * index, 
-            fish.velocity.angleRadians
+            totalDist, 
+            fish.velocity.angleRadians + ( index * 10 * fish.angleDelta )
           )
         ) 
       );
+      totalDist += bit.radius;
     });
   }
 }

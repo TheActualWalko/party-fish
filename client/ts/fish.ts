@@ -4,6 +4,7 @@ import mod = require("./mod");
 import getDistance = require("./distance");
 import Angles = require("./angles");
 import FishBit = require("./fish-bit");
+import { reverse } from "lodash";
 
 interface FishProps {
   bits     : FishBit[],
@@ -27,7 +28,7 @@ class Fish{
   speedDelta : number = 0;
 
   constructor( props : FishProps ){
-    this.bits     = props.bits;
+    this.bits     = reverse( props.bits );
     this.coords   = props.coords;
     this.velocity = props.velocity;
   }
