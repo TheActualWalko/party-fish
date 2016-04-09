@@ -28,6 +28,7 @@ import FishRenderer = require("./fish-renderer");
 
   socket.emit("host");
   */
+
   const NUM_FISH = 160;
   const NUM_PSEUDOFISH = 2;
   const FISH_MAX_V = 0.25;
@@ -87,6 +88,9 @@ import FishRenderer = require("./fish-renderer");
     cnv.width = CANVAS_WIDTH;
     cnv.height= CANVAS_HEIGHT;
     let ctx = cnv.getContext("2d");
+    ctx.translate( CANVAS_WIDTH/2, CANVAS_HEIGHT/2 );
+    ctx.scale(1.1, 1.1);
+    ctx.translate( -CANVAS_WIDTH/2, -CANVAS_HEIGHT/2 );
     fishRenderer = new FishRenderer( ctx );
     let cyclePseudofishCount = 0;
     let drawCount = 0;
