@@ -12,7 +12,7 @@ app.get('/', function(req, res){
 io.on('connection', function(socket){
   socket.on( "checkIn", (userID)=>{
     if( hostSocket == null ){
-      throw new Error("No host socket!");
+      throw new Error("No host checked in!");
     }else{
       console.log("A user checked in!");
       activeFish.push( userID );

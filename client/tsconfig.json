@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module"  : "amd",
+    "outDir"  : "js/app",
+    "jsx"     : "react",
+    "sourceMap" : true,
+    "target" : "es5"
+  },
+  "exclude" : [
+    "node_modules"
+  ]
+}
