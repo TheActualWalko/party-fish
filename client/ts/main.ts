@@ -48,7 +48,7 @@ import FishRenderer = require("./fish-renderer");
     ctx.fillStyle = "#000";
     ctx.fillRect( 0, 0, ctx.canvas.width, ctx.canvas.height );
     ctx.strokeStyle = "#fff";
-    let numTicks = 2;//frameTime / TICK_MS;
+    let numTicks = 4;//frameTime / TICK_MS;
     pond.updateAllFish( numTicks );
     pond.fishes.forEach((fish)=>{
       fishRenderer.render( fish, ctx )
@@ -66,11 +66,11 @@ import FishRenderer = require("./fish-renderer");
         Math.random() * 2 * Math.PI 
       ),
       bits : [ 
-        { radius : 4, lineWidth : 1 },
-        { radius : 1, lineWidth : 1 },
-        { radius : 3, lineWidth : 1 },
-        { radius : 2, lineWidth : 1 },
-        { radius : 1, lineWidth : 1 },
+        { radius : 1 + Math.random() * 8, lineWidth : 0.5 + Math.random() * 3 },
+        { radius : 1 + Math.random() * 8, lineWidth : 0.5 + Math.random() * 3 },
+        { radius : 1 + Math.random() * 8, lineWidth : 0.5 + Math.random() * 3 },
+        { radius : 1 + Math.random() * 8, lineWidth : 0.5 + Math.random() * 3 },
+        { radius : 1 + Math.random() * 8, lineWidth : 0.5 + Math.random() * 3 },
       ]
     });
   }
