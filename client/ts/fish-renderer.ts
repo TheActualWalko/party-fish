@@ -19,7 +19,7 @@ class FishRenderer{
     let totalDist = 0;
     fish.bits.forEach(( bit, index )=>{
       if( index > 0 ){
-        totalDist += bit.radius;
+        totalDist += bit.radius + bit.lineWidth/2;
       }
       this.renderBit( 
         bit, 
@@ -30,7 +30,7 @@ class FishRenderer{
           )
         ) 
       );
-      totalDist += bit.radius;
+      totalDist += bit.radius + bit.lineWidth/2;
     });
   }
 }
