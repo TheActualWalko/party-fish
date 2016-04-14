@@ -43,16 +43,22 @@ import FishRenderer = require("./fish-renderer");
 
   let pond;
   let fishRenderer;
+  let lastFrameTime;
 
-  function draw( ctx, frameTime ){
+  function draw( ctx ){
+    requestAnimationFrame( ()=>{
+      draw( ctx );
+    });
+    let frameTime = new Date().getTime();
     ctx.fillStyle = "#000";
     ctx.fillRect( 0, 0, ctx.canvas.width, ctx.canvas.height );
     ctx.strokeStyle = "#fff";
-    let numTicks = 4;//frameTime / TICK_MS;
+    let numTicks = 4; // (frameTime - lastFrameTime) / TICK_MS
     pond.updateAllFish( numTicks );
     pond.fishes.forEach((fish)=>{
       fishRenderer.render( fish, ctx )
-    })
+    });
+    lastFrameTime = frameTime;
   }
 
   function makeFish(){
@@ -95,14 +101,6 @@ import FishRenderer = require("./fish-renderer");
     ctx.scale(1.1, 1.1);
     ctx.translate( -CANVAS_WIDTH/2, -CANVAS_HEIGHT/2 );
     fishRenderer = new FishRenderer( ctx );
-    let cyclePseudofishCount = 0;
-    let drawCount = 0;
-    let lastFrameTime = new Date().getTime();
-    console.log( pond );
-    setInterval(function(){
-      let currentFrameTime = new Date().getTime();
-      draw( ctx, currentFrameTime - lastFrameTime );
-      lastFrameTime = currentFrameTime;
-    }, FRAME_MS);
+    draw( ctx );
   });
 })();
