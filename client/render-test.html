@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <script type="text/javascript">
+      var requirejs = {
+        paths: {
+          "jquery"           : "../../node_modules/jquery/dist/jquery",
+          "lodash"           : "../../node_modules/lodash/lodash",
+          "socket.io-client" : "../../node_modules/socket.io-client/socket.io"
+        }
+      };
+    </script>
+    <script data-main="js/app/render-test.js" src="node_modules/requirejs/require.js"></script>
+  </head>
+  <body style="margin:0; padding:0;">
+    <canvas id="canvas" width="1580" height="1050" style="transform:scale(0.5);"></canvas>
+  </body>
+</html>
